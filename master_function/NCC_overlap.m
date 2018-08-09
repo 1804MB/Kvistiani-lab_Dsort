@@ -168,7 +168,7 @@ while(stop==0 || criteria_NCC>=1)
         %reevaluate the average template for each clusters or preserved them
         if(ops.freeze =='Y')  %Option use to overwrite the template to preserve the template provided by user              
            dWU = dWU0;
-           dWU = gpuarray(dWU);
+           dWU = gpuArray(dWU);
         else
            if(iteration==1)
                 for il=1:Nfilt
