@@ -21,7 +21,7 @@ Nrank = get_rank(dWU,ops.variance);
 ops.Nrank = Nrank;      % Rank to use for the SVD decomposition given by user via config file
 rez.ops.Nrank = Nrank;
 fprintf('Rank used for calculation:%d\n', Nrank)
-
+dWU0 = dWU;
 %Start the loop to detect spikes and optimize the template,
 criteria_NCC = ops.criteria_NCC;
 suma0 = zeros(nt0,Nchan,Nfilt);%To calculate the average template
