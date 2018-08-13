@@ -5,7 +5,7 @@ ops.fbinary             = strcat(ops.root,'\example.dat'); % will be created for
 ops.chanMap             = strcat(ops.root,'\chanMapT.mat'); % make this file using createChannelMapFile.m		
 
 ops.nt0                 = 40;           % number of sampling point for the waveform		
-ops.nt0min              = 20;           % Strange constant added at the timesstamps why [MB?]
+ops.nt0min              = 20;           % position of the peak of the template
 ops.fs                  = 30000;        % sampling rate		(omit if already in chanMap file)
 ops.NchanTOT            = 32;           % total number of channels (omit if already in chanMap file)
 ops.Nchan               = 32;           % number of active channels (omit if already in chanMap file)
