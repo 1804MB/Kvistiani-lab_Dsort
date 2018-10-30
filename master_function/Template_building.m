@@ -27,7 +27,7 @@ for ibatch = 1:Nbatch
         [row, col, ~] = isolated_peaks(dataRAW, ops.loc_range, ops.long_range, ops.spkTh,ops);
         
         % find their PC projections
-        uS = get_PCproj(dataRAW, row, col, wPCA, ops.maskMaxChannels);
+        uS = get_PCproj(dataRAW, row, col, wPCA, ops.maskMaxChannels,ops.nt0min);
         uS = permute(uS, [2 1 3]);
         uS = reshape(uS,numel(row), Nchan * size(wPCA,2));
        
