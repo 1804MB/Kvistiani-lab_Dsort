@@ -1,5 +1,5 @@
 ops            contains all the parameter provided by user from the config file
-xc             x coordinate of the probe
+xc			   x coordinate of the probe
 yc             y coordiante of the probe
 xcoord         idem
 ycoord         idem

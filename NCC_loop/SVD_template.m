@@ -24,7 +24,7 @@ for i=1:Nfilt
      id = find(U_s(:,1)>=criteria);
      id_del = find(U_s(:,1)<criteria);
      Us(id_del,1:Nrank) = 0;
-     
+     Us(Us<1e-6) =0;
          
      U(:,i,:) = Us(:,1:Nrank);
      [~,chanl] = max(U(:,i,1));

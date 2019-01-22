@@ -8,6 +8,9 @@
 %Based on Kilosort spike sorting algorithm, GNU GENERAL PUBLIC LICENSE
 %************************************************************************************%
 %************************************************************************************%
+clear all;
+close all;
+rng('default');
 tic; % start timer
 gpuDevice(1); % initialize GPU (will  erase any existing GPU arrays)
 %run the config file filled by the user
@@ -34,10 +37,10 @@ k = 0;   %iterate for channel group
 irun = 0;%iterate to accumulate detected spikes
 kt = 0;  %iterate number of cluster
 %initialize templates
- dWU = zeros(ops.nt0,ops.Nchan,ops.Nfilt*ops.Nb_group);
+%  dWU = zeros(ops.nt0,ops.Nchan,ops.Nfilt*ops.Nb_group);
  
  %get spikes for each group
- for ig= 1:ops.Nb_group
+ for ig = 1:ops.Nb_group
      fprintf('Calculation for group: %d... \n',ig); %, toc
      channel = 1+k:1:ops.chan_per_group+k;
      DATAg = DATA(:,channel,:);
@@ -55,17 +58,19 @@ kt = 0;  %iterate number of cluster
             st3(:,3) = st3(:,3) + ops.Nfilt*(ig-1);
             [L,~] = size(st3);
             rez.st3(irun+(1:L),:) = st3;
-            irun = irun + L;
+            irun = irun + L;            
+        else
+            dWU(:,channel,1+kt:ops.Nfilt+kt) = 0;
         end
      end
-     
      k = k + ops.chan_per_group;
      kt = kt + ops.Nfilt;
- end 
-fprintf('Total number of spikes: %d\n',length(rez.st3)); %, toc
-close all;
 
-ops.Nfilt = ops.Nfilt*ops.Nb_group;
+
+ end 
+%************************************************************************************%
+%Delete template that did not detect enough spikes
+ops.Nfilt = kt;
 %check number of templates actually used
 list =[];
 cluster_left = 1:ops.Nfilt;
@@ -83,7 +88,6 @@ for i=1:ops.Nfilt
     spike_id = find(rez.st3(:,3)==cluster_left(i));
     rez.st3(spike_id,3) = i;   
 end
-fprintf('Time %3.2f minutes after spike detection... \n', toc/60);
 %************************************************************************************%
 % Save template
 [dWU,W, U, Weight] = SVD_template(dWU,ops.Nrank,ops.Chan_criteria );
@@ -121,7 +125,7 @@ fprintf('Time %3.2f minutes after merging... \n', toc/60);
 save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
 %************************************************************************************%
 %Calculate waveforms
-%************************************************************************************%
+% %************************************************************************************%
 [rez]=Waveform(rez,DATA);
 fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 %************************************************************************************%
@@ -131,7 +135,7 @@ fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 %************************************************************************************%
 %Calculate probability of each spikes for each top channels to belong to its cluster
 %************************************************************************************%
-[rez]=probability(rez);
+ [rez]=probability(rez);
 %************************************************************************************%
 %Calculate auto-correlogram 
 %************************************************************************************%
@@ -142,4 +146,4 @@ fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
 fprintf('Time %3.2f minutes for Full calculation... \n', toc/60);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%THE END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-close all;
+% close all;

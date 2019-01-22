@@ -5,6 +5,7 @@ for i=1:M_clust
     if(stop==0)
     plot_pc(rez,i)
     wv_ccg(rez,i)
+    plot_amp_ncc(rez,i)
     plot_template_mean(rez,i)
     plot_proba(rez,i)
     prompt = {'Action: empty (skip), 1 (delete),2 (cut), 3 (split), 4 (clean)','Channel','Number of clusters to cut','Template to separate','Threshold for Cleaning','Stop'};

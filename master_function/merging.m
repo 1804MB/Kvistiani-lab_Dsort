@@ -62,7 +62,8 @@ for i=1:NG_clus
 end
 close(h)
 % MERGING CLUSTERS (THIRD PART): SUPPORT VECTOR MACHINES
-% Compute the number of spikes needed to support the vector that can maximize the margin between two clusters that have the same channels for largest projection
+% Compute the number of spikes needed to support the vector that can maximize 
+%the margin between two clusters that have the same channels for largest projection
 rez.st(:,end+1) = rez.st(:,3);
 rez.score = zeros(NG_clus,NG_clus);
 h = waitbar(0, 'NCC for merging...');

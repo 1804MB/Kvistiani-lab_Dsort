@@ -5,7 +5,7 @@
 %*************************************************************************%
 %*************************************************************************%
 
-function [st3] = NCC_overlap(DATA, dWU,ops)
+function [st3,all] = NCC_overlap_amp(DATA, dWU,ops)
 
 [NT, Nchan ,Nbatch] = size(DATA);   
 
@@ -111,7 +111,7 @@ while(stop==0 || criteria_NCC>=1)
                         datSp = reshape(datSp, [size(inds) Nchan]);
                         Best_channel = diag(squeeze(datSp(nt0min,:,Top_chan)-datSp(1,:,Top_chan)))*ops.bitmVolt*ops.scaleproc;
                         
-                        all_channel(irun + (1:numel(time)),:) = squeeze(datSp(nt0min,:,:))*ops.bitmVolt*ops.scaleproc;
+                        all_channel(irun + (1:numel(time)),:) = squeeze(datSp(nt0min,:,:)-datSp(1,:,:))*ops.bitmVolt*ops.scaleproc;
                         irun  = irun + numel(time);
                         
                         if i==1
@@ -202,7 +202,7 @@ while(stop==0 || criteria_NCC>=1)
        disp(text)        
        iteration = iteration + 1;
 end
-rez.all_channel = all_channel;
+all = all_channel;
 
 
 

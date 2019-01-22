@@ -7,6 +7,7 @@ for i = 1:M_clust
     Channel = rez.Merge_cluster{i,5};
     Nchan = length(Channel);
     PC = rez.PC{i};
+    if(length(PC)>500)
      for k = 1:Nchan
             Progress = (i/M_clust);
             waitbar(Progress)
@@ -32,7 +33,7 @@ for i = 1:M_clust
             pdf_c = pdf_c./max(pdf_c);
             rez.PDF{i,k,:} = pdf_c;
      end 
-          
+    end
 end
 
 close(h)
