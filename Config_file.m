@@ -11,7 +11,7 @@ ops.NchanTOT            = 32;           % total number of channels
 ops.Nchan               = 32;           % number of active channels 
 ops.chan_per_group      = 4;            %Number of channels per group
 ops.Nb_group            = ceil(ops.Nchan/ops.chan_per_group);%number of groups
-ops.Nfilt               = 1*ops.chan_per_group  ;           % number of clusters to use 
+ops.Nfilt               = 2*ops.chan_per_group  ;           % number of clusters to use 
 % options for channel whitening		
 ops.whitening           = 'noSpikes'; % type of whitening (default 'full', for 'noSpikes' set options for spike detection below)		
 ops.whiteningRange      = 32; % how many channels to whiten together (Inf for whole probe whitening, should be fine if Nchan<=32)	
