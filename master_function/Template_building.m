@@ -48,9 +48,10 @@ elseif(ops.template=='P') % %initilization using peak to peak
 %         %check the value of the variance for a given precision
 %         normsqS = sum(latent.^2);                            %// total variance
 %         kcomp = find(cumsum(latent.^2)/normsqS >= 0.9999, 1);  %// number of component to keep to reach a precision of 90% of the initial varianc
-         NK  = ops.Nfilt;
-        idx = kmeans(X,NK,'Replicates',50,'MaxIter',1000);
-        
+        NK  = ops.Nfilt;
+        idx = kmeans(gpuArray(X),NK,'Replicates',20,'MaxIter',250);
+        figure;
+        plot3(X(:,1),X(:,2),X(:,3),'*');
         for i=1:NK
             dWU(i,:) = mean(WV(idx==i,:));
         end

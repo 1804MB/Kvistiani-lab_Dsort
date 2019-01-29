@@ -11,7 +11,7 @@ ops.NchanTOT            = 32;           % total number of channels
 ops.Nchan               = 32;           % number of active channels 
 ops.chan_per_group      = 4;            %Number of channels per group
 ops.Nb_group            = ceil(ops.Nchan/ops.chan_per_group);%number of groups
-ops.Nfilt               = 2*ops.chan_per_group  ;           % number of clusters to use 
+ops.Nfilt               = 4;           % number of clusters to use 
 % options for channel whitening		
 ops.whitening           = 'noSpikes'; % type of whitening (default 'full', for 'noSpikes' set options for spike detection below)		
 ops.whiteningRange      = 32; % how many channels to whiten together (Inf for whole probe whitening, should be fine if Nchan<=32)	
@@ -29,8 +29,8 @@ ops.NT                  = 32*1024+ ops.ntbuff;% this is the batch size (try decr
 ops.criteria_NCC         = 0.9;          % criteria to detect spikes from the normalized cross correlation [number between -1 and 1]	
 ops.max_itera            = 0.05;         % Max number of iteration 
 %Criteria that control the post-processor
-ops.Threshold = 0.9;                        % Control the criteria to merge clusters
-ops.Chan_criteria = 0.3;                     %Criteria used to select the best channels
+ops.Threshold = 0.85;                        % Control the criteria to merge clusters
+ops.Chan_criteria = 0.2;                     %Criteria used to select the best channels
 
 % options for initializing spikes from data	
 %Import external template

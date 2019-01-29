@@ -119,27 +119,32 @@ rez.st = rez.st3;
 % %************************************************************************************%
 % %Merging Templates
 % %************************************************************************************%
-[rez]=merging(rez,ops.Threshold);
+[rez] = merging(rez,ops.Threshold);
 fprintf('Time %3.2f minutes after merging... \n', toc/60);
 %************************************************************************************%
 save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
 %************************************************************************************%
-%Calculate waveforms
 % %************************************************************************************%
-[rez]=Waveform(rez,DATA);
+[rez] = Waveform(rez,DATA);
 fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 %************************************************************************************%
 %Calculate projection of each spikes onto its template
 %************************************************************************************%
-[rez]=projection(rez,DATA);
+%Calculate waveforms
+[~,~,U,~] = SVD_template(rez.M_template,rez.ops.Nrank,rez.ops.Chan_criteria );
+rez.U = U;
+[rez] = Chan_cluster_M(rez,rez.ops.Chan_criteria);
+M_clust = length(unique(rez.st(:,end)));
+for j=1:M_clust
+       i_chan = rez.Chan{j};
+       rez.Merge_cluster{j,5} = i_chan;   
+end
+[rez] = projection(rez,DATA);
 %************************************************************************************%
-%Calculate probability of each spikes for each top channels to belong to its cluster
-%************************************************************************************%
- [rez]=probability(rez);
 %************************************************************************************%
 %Calculate auto-correlogram 
 %************************************************************************************%
-[rez]=autocorrelogram(rez);
+[rez] = autocorrelogram(rez);
 %************************************************************************************%
 %Save the data
 %************************************************************************************%

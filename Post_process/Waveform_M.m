@@ -19,7 +19,6 @@ h = waitbar(0, 'Computing mean waveforms...');
         id = rez.st(:,end-1)==j;
         time = double(rez.st(id,1));
         id_M = int32(rez.st(id,end));
-         id_T = int32(rez.st(id,3));
         if(j==1)
             offset = 0;
         else

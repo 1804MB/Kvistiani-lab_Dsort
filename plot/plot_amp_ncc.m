@@ -1,6 +1,5 @@
 function plot_amp_ncc(rez,i)
      Spike_id = find(rez.st(:,end)==i);
-     SpikePETH_M =  rez.PETH(:,i);
      Nchan = length(cell2mat(rez.Merge_cluster(i,5)));
     %Get histogram of spikes amplitudes
      amplitudes = rez.st(Spike_id,5);
