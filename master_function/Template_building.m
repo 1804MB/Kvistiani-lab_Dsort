@@ -14,9 +14,12 @@ elseif(ops.template=='P') % %initilization using peak to peak
     X  = [];
     WV = [];
     irun = 0;
-    for ibatch = 1:Nbatch
-        data   = single(DATA(:,:,ibatch))/ops.scaleproc;
-        dat    = -single(DATA(:,:,ibatch))/ops.scaleproc;
+    P = randperm(Nbatch);
+    Nbatch_use = ceil(ops.Nbatch_ratio*Nbatch);
+    P = P(1:Nbatch_use);
+    for ibatch = 1:Nbatch_use
+        data   = single(DATA(:,:,P(ibatch)))/ops.scaleproc;
+        dat    = -single(DATA(:,:,P(ibatch)))/ops.scaleproc;
         for k=1:Nchan
             [~, inx] = findpeaks(dat(ops.nt0:end-ops.nt0,k), 'MinPeakDistance',ops.nt0);
             inx = inx+ops.nt0;
