@@ -11,7 +11,7 @@ function [st3] = NCC_overlap(DATA, dWU,ops)
 
 nt0     = ops.nt0;       % Number of points in sampling rate for a waveform
 nt0min  = ops.nt0min;    % Strange constant added at the timesstamps why [MB?]
-Nfilt 	= ops.Nfilt;                 % Number of Clusters provided by user via config file
+[~,~,Nfilt] 	= size(dWU);                 % Number of Clusters provided by user via config file
 Chan_criteria = ops.Chan_criteria;
 
 last = 0;
