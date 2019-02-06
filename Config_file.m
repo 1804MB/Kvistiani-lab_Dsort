@@ -1,6 +1,6 @@
 			
-ops.datatype            = 'openEphys';  % binary ('dat', 'bin') or 'openEphys'
-ops.root                = 'C:\Users\au551108\Documents\light\20170212a'; % 'openEphys' only: where raw files are
+ops.datatype            = 'dat';  % binary ('dat', 'bin') or 'openEphys'
+ops.root                = 'C:\Users\au551108\Documents\light\2017-08-31_09-36-30blue'; % 'openEphys' only: where raw files are
 ops.fbinary             = strcat(ops.root,'\example.dat'); % will be created for 'openEphys'		
 ops.chanMap             = strcat(ops.root,'\chanMapT.mat'); % make this file using createChannelMapFile.m		
 
@@ -11,7 +11,7 @@ ops.NchanTOT            = 32;           % total number of channels
 ops.Nchan               = 32;           % number of active channels 
 ops.chan_per_group      = 4;            %Number of channels per group
 ops.Nb_group            = ceil(ops.Nchan/ops.chan_per_group);%number of groups
-ops.Nfilt               = 10;           % number of clusters to use 
+ops.Nfilt               = 4;           % number of clusters to use 
 ops.Nbatch_ratio        = 1/2;         %Proportion of batch to use for initilialization (number between 0.01 and 1)
 % options for channel whitening		
 ops.whitening           = 'noSpikes'; % type of whitening (default 'full', for 'noSpikes' set options for spike detection below)		
@@ -27,10 +27,10 @@ ops.slow                = 5000;  % Frequency of low pass filter
 ops.ntbuff              = 64;    % samples of symmetrical buffer for whitening and spike detection		
 ops.NT                  = 32*1024+ ops.ntbuff;% this is the batch size (try decreasing if out of memory) 		
 % for GPU should be multiple of 32 + ntbuff				
-ops.criteria_NCC         = 0.8;          % criteria to detect spikes from the normalized cross correlation [number between -1 and 1]	
+ops.criteria_NCC         = 0.9;          % criteria to detect spikes from the normalized cross correlation [number between -1 and 1]	
 ops.max_itera            = 0.05;         % Max number of iteration 
 %Criteria that control the post-processor
-ops.Threshold = 1;                        % Control the criteria to merge clusters
+ops.Threshold = 0.9;                        % Control the criteria to merge clusters
 ops.Chan_criteria = 0.2;                     %Criteria used to select the best channels
 
 % options for initializing spikes from data	
@@ -40,8 +40,9 @@ ops.template_file = strcat(ops.root,'\S_template.mat')  ;   %Name of the file co
 ops.freeze = 'Y';                                          %update the template (N) or not (Y)
 %********************Initilialization criteria
 %if ops.template = 'P'  ;  
-ops.T_crit          = 4;        %value for spike detection thresholding using option ops.Template = P;
+ops.T_crit          = 6;        %value for spike detection thresholding using option ops.Template = P;
 ops.Ns_min          = 100;      %minimum nmber of spikes to detect
+ops.p_val_dip_test  = 0.99;     %Threshold criteria for Hartigan dip test p-value 
 %ops.template = 'N'  ;  , from original Kilosort
 ops.Th              = [4 6];    % threshold for detecting spikes on template-filtered data ([6 12 12])		
 ops.lam             = [5 20 20];   % large means amplitudes are forced around the mean ([10 30 30])	

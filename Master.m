@@ -39,34 +39,37 @@ kt = 0;  %iterate number of cluster
 %initialize templates
 %  dWU = zeros(ops.nt0,ops.Nchan,ops.Nfilt*ops.Nb_group);
  
- %get spikes for each group
- for ig = 1:ops.Nb_group
+%get spikes for each group
+
+for ig = 1:8
      fprintf('Calculation for group: %d... \n',ig); %, toc
      channel = 1+k:1:ops.chan_per_group+k;
      DATAg = DATA(:,channel,:);
      %get initial templates
-     [T] = Template_building(DATAg,ops);
+     [T] = Template_building3(DATAg,ops);
      
      if(isempty(nonzeros(T)))
-        dWU(:,channel,1+kt:ops.Nfilt+kt) = 0;
-        fprintf('No Templates found for group %d, you might want to lower ops.spkTh\n',ig); %, toc
+        Ncl = 0;
+        fprintf('No Templates found for group %d, you might want to lower ops.T_crit or ops.spkTh\n',ig); %, toc
      else
         %fit templates and extract timestamps, iteratively
         [st3]= NCC_overlap(DATAg, T,ops);  
+        [~,~,Ncl] = size(T);
+        dWU(:,channel,1+kt:Ncl+kt) = T;
         if(~isempty(st3))
-            dWU(:,channel,1+kt:ops.Nfilt+kt) = T;
-            st3(:,3) = st3(:,3) + ops.Nfilt*(ig-1);
+            if(irun>0)
+                incr = kt;
+            else
+                incr = 0;
+            end
+            st3(:,3) = st3(:,3) + incr;
             [L,~] = size(st3);
             rez.st3(irun+(1:L),:) = st3;
             irun = irun + L;            
-        else
-            dWU(:,channel,1+kt:ops.Nfilt+kt) = 0;
         end
      end
      k = k + ops.chan_per_group;
-     kt = kt + ops.Nfilt;
-
-
+     kt = kt + Ncl;
  end 
 %************************************************************************************%
 %Delete template that did not detect enough spikes
@@ -131,14 +134,14 @@ fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 %Calculate projection of each spikes onto its template
 %************************************************************************************%
 %Calculate waveforms
-[~,~,U,~] = SVD_template(rez.M_template,rez.ops.Nrank,rez.ops.Chan_criteria );
-rez.U = U;
-[rez] = Chan_cluster_M(rez,rez.ops.Chan_criteria);
-M_clust = length(unique(rez.st(:,end)));
-for j=1:M_clust
-       i_chan = rez.Chan{j};
-       rez.Merge_cluster{j,5} = i_chan;   
-end
+% [~,~,U,~] = SVD_template(rez.M_template,rez.ops.Nrank,rez.ops.Chan_criteria );
+% rez.U = U;
+% [rez] = Chan_cluster_M(rez,rez.ops.Chan_criteria);
+% M_clust = length(unique(rez.st(:,end)));
+% for j=1:M_clust
+%        i_chan = rez.Chan{j};
+%        rez.Merge_cluster{j,5} = i_chan;   
+% end
 [rez] = projection(rez,DATA);
 %************************************************************************************%
 %************************************************************************************%

@@ -11,6 +11,7 @@ elseif(ops.template=='G') % or it generates templates based on config file
     [WUinit] = init_template(ops,Nchan);
     dWU    = WUinit(:,:,1:Nfilt);
 elseif(ops.template=='P') % %initilization using peak to peak 
+    dWU = [];
     X  = [];
     WV = [];
     irun = 0;
@@ -45,22 +46,70 @@ elseif(ops.template=='P') % %initilization using peak to peak
             irun  = irun +numel(inx);
         end
     end
-    dWU = [];
     if(length(X)>ops.Ns_min)
-%         [~,score,latent] = pca(X);
-%         %check the value of the variance for a given precision
-%         normsqS = sum(latent.^2);                            %// total variance
-%         kcomp = find(cumsum(latent.^2)/normsqS >= 0.9999, 1);  %// number of component to keep to reach a precision of 90% of the initial varianc
         NK  = ops.Nfilt;
-        idx = kmeans(gpuArray(X),NK,'Replicates',20,'MaxIter',250);
-        figure;
-        plot3(X(:,1),X(:,2),X(:,3),'*');
-        for i=1:NK
-            dWU(i,:) = mean(WV(idx==i,:));
+        idx = kmeans(X,NK,'Replicates',20,'MaxIter',250);
+        %calculate the mean of each template
+        cvg = 0;
+        i   = 1;
+        while(cvg==0)
+            id = find(idx==i);
+            if(length(id)>ops.Ns_min)
+                wave = WV(idx==i,:);
+                Mean_wave = mean(wave);
+                PCP = wave*mean(wave)';
+                [~, pv] = HartigansDipSignifTest(sort(PCP), length(PCP));
+                if(pv<ops.p_val_dip_test )
+                    dWU = reshape(Mean_wave,[ops.nt0 Nchan]);
+                    Nrank = 3;
+                    [~,W, ~, ~,~] = SVD_template(dWU, Nrank,ops.Chan_criteria) ;  
+                    WVP = reshape(WV(id,:), [length(id) ops.nt0 Nchan]);
+                    WVP = permute(WVP, [2 1 3]);
+                    coefs = reshape(squeeze(W(:,1,1:Nrank))' *reshape(WVP, ops.nt0, []) , Nrank, numel(id), Nchan);
+                    PC = permute(coefs, [3 1 2]);        
+                    %use the kurtosis to guess on which channel to make the
+                    %cut
+                    sig_for = zeros(Nchan,Nrank);
+                    for k=1:Nchan
+                        for ij = 1:Nrank
+                            sig_for(k,ij) =  kurtosis(PC(k,ij,:));
+                        end
+                    end
+                    [~,ichan]=min(min(sig_for,[],2));
+                    options = statset('MaxIter',100);
+                     warning('off','stats:gmdistribution:FailedToConvergeReps');
+                    GMModel = fitgmdist(squeeze(PC(ichan,:,:))',2,'Options',options,'Replicates',100,'RegularizationValue',0.01);
+                    clusterX = cluster(GMModel,squeeze(PC(ichan,:,:))');
+                    id2 = find(clusterX==2);
+                    idx(id(id2)) = length(unique(idx))+1;
+                else
+                    i = i +1;
+                    NK = length(unique(idx));
+                    if(i>NK)
+                        cvg = 1;
+                    end
+                end
+            else
+                if(isempty(id))
+                    cvg =1;
+                end
+               WV((id),:) = [];
+               idx(id) = [];
+               list_left = unique(idx);            
+               for jk = 1:length(list_left)
+                   idL = find(idx==list_left(jk));
+                   idx(idL) = jk;
+               end
+           end
         end
-        dWU = reshape(dWU,[NK ops.nt0 Nchan]);
-        dWU = permute(dWU,[2 3 1]);
-       
+            NK = length(unique(idx));
+            dWU =[];
+            for i=1:NK
+                dWU(i,:) = mean(WV(idx==i,:));
+            end
+            dWU = reshape(dWU,[NK ops.nt0 Nchan]);
+            dWU = permute(dWU,[2 3 1]);
+        
     end
 else%Get template using Kilosort initialization
     i0  = 0;
