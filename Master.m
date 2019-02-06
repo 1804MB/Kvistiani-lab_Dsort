@@ -46,7 +46,7 @@ for ig = 1:8
      channel = 1+k:1:ops.chan_per_group+k;
      DATAg = DATA(:,channel,:);
      %get initial templates
-     [T] = Template_building3(DATAg,ops);
+     [T] = Template_building(DATAg,ops);
      
      if(isempty(nonzeros(T)))
         Ncl = 0;
