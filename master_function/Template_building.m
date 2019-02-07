@@ -76,7 +76,7 @@ elseif(ops.template=='P') % %initilization using peak to peak
                         end
                     end
                     [~,ichan]=min(min(sig_for,[],2));
-                    options = statset('MaxIter',100);
+                    options = statset('MaxIter',500);
                      warning('off','stats:gmdistribution:FailedToConvergeReps');
                     GMModel = fitgmdist(squeeze(PC(ichan,:,:))',2,'Options',options,'Replicates',100,'RegularizationValue',0.01);
                     clusterX = cluster(GMModel,squeeze(PC(ichan,:,:))');

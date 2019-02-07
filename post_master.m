@@ -7,9 +7,10 @@ for i=1:M_clust
         wv_ccg(rez,i)
         plot_ncc(rez,i)
         plot_amp(rez,i)
+        plot_time_amp(rez,i)
         prompt = {'Action: empty (skip), 1 (delete),2 (cut), 3 (clean Amplitude), 4 (clean NCC)','Channel','Number of clusters to cut','Threshold for Cleaning (amplitude or NCC)','Stop'};
         title = 'Input';
-        i_chan = rez.Chan{i};
+        i_chan = rez.Merge_cluster{i,5};
             dims = [1 80];
         definput = {'',num2str(i_chan(1)),'2','','0'};
         opts.Resize = 'on';
