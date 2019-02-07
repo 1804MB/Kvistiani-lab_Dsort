@@ -41,7 +41,7 @@ kt = 0;  %iterate number of cluster
  
 %get spikes for each group
 
-for ig = 1:8
+for ig = 1:ops.Nb_group
      fprintf('Calculation for group: %d... \n',ig); %, toc
      channel = 1+k:1:ops.chan_per_group+k;
      DATAg = DATA(:,channel,:);
