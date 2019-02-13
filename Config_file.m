@@ -37,7 +37,6 @@ ops.Chan_criteria = 0.2;                     %Criteria used to select the best c
 %Import external template
 ops.template = 'P'  ;                                      %'Y' (imported), 'G' (artificial), 'P' for tetrode peak to peak, 'N' (Kilosort initialization)
 ops.template_file = strcat(ops.root,'\S_template.mat')  ;   %Name of the file containaing the template matrix, only used of previous option is 'Y'
-ops.freeze = 'Y';                                          %update the template (N) or not (Y)
 %********************Initilialization criteria
 %if ops.template = 'P'  ;  
 ops.T_crit          = 6;        %value for spike detection thresholding using option ops.Template = P;

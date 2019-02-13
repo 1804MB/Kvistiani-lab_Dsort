@@ -5,7 +5,7 @@
 %*************************************************************************%
 %*************************************************************************%
 
-function [st3] = NCC_overlap(DATA, dWU,ops)
+function [st,T] = NCC_overlap(DATA, dWU,ops)
 
 [NT, Nchan ,Nbatch] = size(DATA);   
 
@@ -14,27 +14,17 @@ nt0min  = ops.nt0min;    % Strange constant added at the timesstamps why [MB?]
 [~,~,Nfilt] 	= size(dWU);                 % Number of Clusters provided by user via config file
 Chan_criteria = ops.Chan_criteria;
 
-last = 0;
-st3 = [];
+st = [];
 
 Nrank = get_rank(dWU,ops.variance);
 ops.Nrank = Nrank;      % Rank to use for the SVD decomposition given by user via config file
-rez.ops.Nrank = Nrank;
 fprintf('Rank used for calculation:%d\n', Nrank)
-dWU0 = dWU;
 %Start the loop to detect spikes and optimize the template,
 criteria_NCC = ops.criteria_NCC;
-suma0 = zeros(nt0,Nchan,Nfilt);%To calculate the average template
-nb_spikes0 =  zeros(Nfilt,1) ;%number of spikes
 nbsp_tot = 0;%count cumulated number of spikes
 stop =0;   
 iteration =1;
-all_channel = [];
-irun = 0;
 while(stop==0 || criteria_NCC>=1)
-   if iteration>1
-       last =1;
-   end
    batch_score = zeros(Nbatch,NT);
    batch_id    = zeros(Nbatch,NT);
    nbsp = 0;
@@ -101,18 +91,14 @@ while(stop==0 || criteria_NCC>=1)
              Top_chan = Topchan(id);
 
             %Save the detected spikes and projections
-            if(last==1)
-                if ~isempty(time)
+                if(~isempty(time))
                         inds  = repmat(time', nt0, 1) + repmat(int32(1:nt0)', 1, numel(time));
                         try  datSp  = dat(inds(:), :);
                         catch
                         datSp = dat(inds(:), :);
                         end
                         datSp = reshape(datSp, [size(inds) Nchan]);
-                        Best_channel = diag(squeeze(datSp(nt0min,:,Top_chan)-datSp(1,:,Top_chan)))*ops.bitmVolt*ops.scaleproc;
-                        
-                        all_channel(irun + (1:numel(time)),:) = squeeze(datSp(nt0min,:,:))*ops.bitmVolt*ops.scaleproc;
-                        irun  = irun + numel(time);
+                        Best_channel = diag(squeeze(datSp(nt0min,:,Top_chan)-datSp(1,:,Top_chan)))*ops.bitmVolt*ops.scaleproc;                 
                         
                         if i==1
                             ioffset = 0;
@@ -124,14 +110,11 @@ while(stop==0 || criteria_NCC>=1)
                         %sampling rate, timestamps in ms, cluter id,
                         %amplitude of spike, Cost function, batch number
                         STT = cat(2,double(timesp+nt0min) +(NT-ops.ntbuff)*(i-1),  round(( double(timesp+nt0min) +(NT-ops.ntbuff)*(i-1))/(ops.fs*1e-3)), double(id),double(best(time)),double(Best_channel),double(Top_chan),double(i*ones(length(time),1)));
-                        st3 = cat(1, st3, STT);
+                        st = cat(1, st, STT);
                 end
-            end
-
 %****************************************Start***********************************************%
 %***********************Substatction of detected spikes using templates**********************%
 %********************************************************************************************%
-            if(iteration>1) 
                 if(~isempty(time))
                     A = dWU(:,:,id);
                     Mask = logical(U(:,id));
@@ -153,56 +136,38 @@ while(stop==0 || criteria_NCC>=1)
                         dat(inds(:),:) = subs;
                         DATA(:,:,i) = int16(dat*ops.scaleproc);
                     end  
-                end
-            else%if it is 1st iteration then update sum the detected waveform of each clusters
-                 inds = repmat(time', nt0, 1) + repmat(int32(1:nt0)', 1, numel(time));
-                 subs = dat(inds(:),:);
-                 subs = reshape(subs,[size(inds) Nchan]);
-                 for ite=1:Nfilt
-                    id_cluster = find(id==ite);  
-                    suma0(:,:,ite) =  suma0(:,:,ite) + squeeze(sum(subs(:,id_cluster,:),2));
-                    nb_spikes0(ite,1) = nb_spikes0(ite,1) + length(id_cluster);
-                 end                       
-            end
+                end                 
 %******************************************END************************************************%
 %***********************Substatction of detected spikes using templates**********************%
           
         end%end of loop on batch number
-        
-        
-        %reevaluate the average template for each clusters or preserved them
-        if(ops.freeze =='Y')  %Option use to overwrite the template to preserve the template provided by user              
-           dWU = dWU0;
-          else
-           if(iteration==1)
-                for il=1:Nfilt
-                    if(nb_spikes0(il,:)==0)
-                    else
-                     dWU(:,:,il) = suma0(:,:,il)/sum(nb_spikes0(il,:));
-                    end
-                end
-                [dWU,top] = SVD_topchan(dWU,Chan_criteria);
-                dWU = alignWU(dWU,top, nt0min); %make sure that the deep is set at nt0min vital for substracting the template from signal
-            end
-        end
-        
        %user output
        text =['Iteration:',num2str(iteration),'   Number of spikes:',num2str(nbsp),'   Threshold:',num2str(criteria_NCC)];
        disp(text)
        
        %Calculation will be stop if no more spikes are detected or number
        %of spikes are below a precision provided by user (ops.max_itera)
-       if(iteration>1)
-            nbsp_tot = nbsp_tot +nbsp;
+             nbsp_tot = nbsp_tot +nbsp;
              if(nbsp/nbsp_tot<ops.max_itera ||nbsp==0)
                     stop =1;
              end           
-       end
+
        text =['Cumulated Spikes:',num2str(nbsp_tot)];
        disp(text)        
        iteration = iteration + 1;
+       
+       ind_temp = unique(st(:,3));
+       if(isempty(ind_temp))
+            T = [];
+       else
+            T  = dWU(:,:,ind_temp);
+            for i=1:length(ind_temp)
+                id = find(st(:,3)==ind_temp(i));
+                st(id,3) = i;           
+            end
+       end
 end
-rez.all_channel = all_channel;
+
 
 
 
