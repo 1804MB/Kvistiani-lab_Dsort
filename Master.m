@@ -5,7 +5,7 @@
 %************************************************************************************%
 %Done by Madeny Belkhiri from Duda Kvitsiani lab, Aarhus university,DANDRITE
 %Version 3.0, date:18-03-2018
-%Based on Kilosort spike sorting algorithm, GNU GENERAL PUBLIC LICENSE
+% GNU GENERAL PUBLIC LICENSE
 %************************************************************************************%
 %************************************************************************************%
 clear all;
