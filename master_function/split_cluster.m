@@ -1,4 +1,4 @@
-function  [rez,chan] = clean_cluster(rez)
+function  [rez,chan] = split_cluster(rez)
 M_clust = length(unique(rez.st(:,end)));
 chan = NaN(1,2*M_clust);
 Nrank = 3;

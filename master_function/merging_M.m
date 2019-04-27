@@ -117,6 +117,3 @@ for i=1:M_clust
 end
 
 rez.Merge_cluster = Merge_cluster;
-
-
-

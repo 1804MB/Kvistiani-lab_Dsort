@@ -11,7 +11,7 @@ function [T,rez] = estimate_snr(rez,T)
   snr_mean = zeros(Nclust,1);
   N  =1000;
   list = [];
-  for i=1: Nclust
+  for i=1:Nclust
         channel =  Chan{i};
         Template = reshape(T(:,channel,i),[length(channel)*nt0 1]);
     for ibatch = 1:Nbatch
@@ -24,6 +24,11 @@ function [T,rez] = estimate_snr(rez,T)
       snr_coeff_batch(i,ibatch) = mean(snr_s);
     end
     snr_mean(i) = mean(snr_coeff_batch(i,:));
+    
+    
+if length(channel) > 4
+    channel = channel(1:4);
+end
 
     if(snr_mean<th(length(channel)))
        list  = [list,i];

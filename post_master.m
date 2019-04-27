@@ -11,16 +11,23 @@ answer = inputdlg(prompt,title,dims,definput,opts);
 mode = str2double(answer{1});
 Ncycle = str2double(answer{2});
 del = [];
+ChC = 10;
+SpkThr = -150;
+Ncc_Thr = [0 0 2 3]; 
+Thr_pdf = [0.01 0.005 0 0];
 if(mode==0)
     for i =1:Ncycle
-        [rez] = clean_cluster(rez);
-        [rez] = recompute(rez,DATA);   
-    end     
-        [rez] = remove_cluster(rez);  
+        [rez,chan] = split_cluster(rez);
         [rez] = recompute(rez,DATA);
-        [rez] = merging_M(rez,rez.ops.Threshold);
+%         for iCluster = 1:length(unique(rez.st(:,end)))
+%             [rez] = cleaning(rez,iCluster,chan(iCluster),Thr_pdf(i));
+%         end
+        [rez] = remove_cluster(rez,SpkThr,ChC,Ncc_Thr(i));  % -150 3
         [rez] = recompute(rez,DATA);
-        save(fullfile(rez.ops.root,  'rezDA.mat'), 'rez', '-v7.3')
+    end
+             [rez] = merging_M(rez,0.9);
+             [rez] = recompute(rez,DATA);
+             save(fullfile(rez.ops.root,  'rezFMerged.mat'), 'rez', '-v7.3')
 else
     for i= 1:M_clust
         if(stop==0)
@@ -32,8 +39,9 @@ else
             prompt = {'Action: empty (skip), 1 (delete),2 (cut), 3 (clean Amplitude), 4 (clean NCC), 5 (clean Prob)','Channel','Number of clusters to cut','Threshold for Cleaning (amplitude or NCC)','Stop'};
             title = 'Input';
             i_chan = rez.Merge_cluster{i,5};
-                dims = [1 80];
+            dims = [1 80];
             definput = {'',num2str(i_chan(1)),'2','','0'};
+            
             opts.Resize = 'on';
             opts.WindowStyle= 'normal';
             ops.Interpreter = 'none';
@@ -53,33 +61,33 @@ else
                 Nclust  = str2double(answer{3});
                 M_clust = max(unique(rez.st(:,end)));
                 [rez] = new_cluster(rez,i,channel,Nclust,M_clust);
-                fprintf('Cluster %d cut\n',i); 
+                fprintf('Cluster %d cut\n',i);
             elseif(option==3)
                 channel = str2double(answer{2});
-                Th = str2double(answer{4});  
+                Th = str2double(answer{4});
                 [rez] = cleaning_amp(rez,channel,i,Th);
-                fprintf('Cluster %d using Amplitude\n',i); 
+                fprintf('Cluster %d using Amplitude\n',i);
             elseif(option==4)
-                Th = str2double(answer{4});       
-               [rez] = cleaning_ncc(rez,i,Th);
-                fprintf('Cluster %d cleaned using NCC\n',i); 
+                Th = str2double(answer{4});
+                [rez] = cleaning_ncc(rez,i,Th);
+                fprintf('Cluster %d cleaned using NCC\n',i);
             elseif(option==5)
-            channel = str2num(answer{2});
-            Th = str2double(answer{4});
-            [rez] = cleaning(rez,i,channel,Th);
-            fprintf('Cluster %d cleaned\n',i);
-            fprintf('Cluster %d kept\n',i);
+                channel = str2num(answer{2});
+                Th = str2double(answer{4});
+                [rez] = cleaning(rez,i,channel,Th);
+                fprintf('Cluster %d cleaned\n',i);
+                fprintf('Cluster %d kept\n',i);
             else
                 fprintf('Cluster %d kept\n',i);
             end
-        close all;
+            close all;
         else
         end
-
+        
     end
     [rez] = recompute(rez,DATA);
-    save(fullfile(rez.ops.root,  'rezDM.mat'), 'rez', '-v7.3')
+    save(fullfile(rez.ops.root,  'rezF3.mat'), 'rez', '-v7.3')
 end
 
 
-% 
+%

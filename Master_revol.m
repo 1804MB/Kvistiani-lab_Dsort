@@ -14,22 +14,16 @@ rng('default');
 tic; % start timer
 gpuDevice(1); % initialize GPU (will  erase any existing GPU arrays)
 %run the config file filled by the user
-session = dir;
-session = session(3:end);
-
-for i = 1:length(session) % [8 11 18 21 24 26 27]*
-sessionpath = [cd,'\',session(i).name];
-ops = Config_file(sessionpath);
+Config_file;
 % 
-
 %If openephys format, need to convert into binary saved in example.dat
-if strcmp(ops.datatype , 'opeEphys') % dat opeEphys
+if strcmp(ops.datatype , 'openEphys')
     ops = convertOpenEphysToRawBInary(ops);  % convert data, only for OpenEphys
     fprintf('Time %3.2f. minutes after converting from openephys to binary... \n', toc/60);
     %Get the conversion factor for bit in microvolt
-    file =  strcat(ops.root,'\100_CH17.continuous');
-%     [~, ~, info] = load_open_ephys_data_faster(file);
-%     ops.bitmVolt = info.header.bitVolts;
+    file =  strcat(ops.root,'\100_CH1.continuous');
+    [~, ~, info] = load_open_ephys_data_faster(file);
+    ops.bitmVolt = info.header.bitVolts;
 end
 %************************************************************************************%
 %*******************************Preprocess data *************************************%
@@ -48,10 +42,10 @@ kt = 0;  %iterate number of cluster
 %get spikes for each group
 
 
-for ig = 1:ops.Nb_group 
+for ig = 1 
      fprintf('Calculation for group: %d... \n',ig); %, toc
-      channel = 1+k:1:ops.chan_per_group+k;
-%      channel = 13:16;
+%      channel = 1+k:1:ops.chan_per_group+k;
+     channel = 13:16;
      DATAg = DATA(:,channel,:);
      %get initial templates
      [T] = Template_building(DATAg,ops);
@@ -114,7 +108,7 @@ rez.st         = rez.st(isort,:);
 [rez] = merging(rez,ops.Threshold);
 fprintf('Time %3.2f minutes after merging... \n', toc/60);
 %************************************************************************************%
-save(fullfile(ops.root,  'rezI.mat'), 'rez', '-v7.3')
+save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
 %************************************************************************************%
 % %************************************************************************************%
 [rez] = Waveform(rez,DATA);
@@ -129,17 +123,9 @@ fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 %************************************************************************************%
 [rez] = autocorrelogram(rez);
 %************************************************************************************%
-[rez]=probability(rez);
 %Save the data
 %************************************************************************************%
-save(fullfile(ops.root,  'rezI.mat'), 'rez', '-v7.3')
-fprintf('Time %3.2f minutes after projection_autoccorelation calculation... \n', toc/60);
-% Spliting, cleaning and final merging clusters
-%************************************************************************************%
-[rez] = cleaning_clusters(rez,DATA);
-save(fullfile(ops.root,  'rezF.mat'), 'rez', '-v7.3')
+save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
 fprintf('Time %3.2f minutes for Full calculation... \n', toc/60);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%THE END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-close all;
-end
+% close all;

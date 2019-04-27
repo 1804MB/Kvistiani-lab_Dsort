@@ -1,16 +1,16 @@
 function [dWU] = Template_building(DATA,ops)
-[NT, Nchan ,Nbatch] = size(DATA);   
+[NT, Nchan ,Nbatch] = size(DATA);
 Nfilt = ops.Nfilt;
 % Deleted the option to choose from data or not, now only fromdata.
 % thus, the initiale template will always be calculated from the data.
 if(ops.template =='Y')
-%     dWU0   = load(ops.template_file);
+    %     dWU0   = load(ops.template_file);
     load(ops.template_file);
     dWU    = S_template;
 elseif(ops.template=='G') % or it generates templates based on config file
     [WUinit] = init_template(ops,Nchan);
     dWU    = WUinit(:,:,1:Nfilt);
-elseif(ops.template=='P') % %initilization using peak to peak 
+elseif(ops.template=='P') % %initilization using peak to peak
     dWU = [];
     X  = [];
     WV = [];
@@ -65,11 +65,11 @@ elseif(ops.template=='P') % %initilization using peak to peak
                 if(pv<ops.p_val_dip_test )
                     dWU = reshape(Mean_wave,[ops.nt0 Nchan]);
                     Nrank = 3;
-                    [~,W, ~, ~,~] = SVD_template(dWU, Nrank,ops.Chan_criteria) ;  
+                    [~,W, ~, ~,~] = SVD_template(dWU, Nrank,ops.Chan_criteria) ;
                     WVP = reshape(WV(id,:), [length(id) ops.nt0 Nchan]);
                     WVP = permute(WVP, [2 1 3]);
                     coefs = reshape(squeeze(W(:,1,1:Nrank))' *reshape(WVP, ops.nt0, []) , Nrank, numel(id), Nchan);
-                    PC = permute(coefs, [3 1 2]);        
+                    PC = permute(coefs, [3 1 2]);
                     %use the kurtosis to guess on which channel to make the
                     %cut
                     sig_for = zeros(Nchan,Nrank);
@@ -80,11 +80,20 @@ elseif(ops.template=='P') % %initilization using peak to peak
                     end
                     [~,ichan]=min(min(sig_for,[],2));
                     options = statset('MaxIter',500);
-                     warning('off','stats:gmdistribution:FailedToConvergeReps');
-                    GMModel = fitgmdist(squeeze(PC(ichan,:,:))',2,'Options',options,'Replicates',100,'RegularizationValue',0.01);
-                    clusterX = cluster(GMModel,squeeze(PC(ichan,:,:))');
-                    id2 = find(clusterX==2);
-                    idx(id(id2)) = length(unique(idx))+1;
+                    warning('off','stats:gmdistribution:FailedToConvergeReps');
+                    try   % try catch loop to avoid problems with GMM.  line 95 ends
+                        GMModel = fitgmdist(squeeze(PC(ichan,:,:))',2,'Options',options,'Replicates',100,'RegularizationValue',0.01);
+                        clusterX = cluster(GMModel,squeeze(PC(ichan,:,:))');
+                        id2 = find(clusterX==2);
+                        idx(id(id2)) = length(unique(idx))+1;
+                    catch         
+                        i = i +1;
+                        NK = length(unique(idx));
+                        if(i>NK)
+                            cvg = 1;
+                        end
+                    end
+                    
                 else
                     i = i +1;
                     NK = length(unique(idx));
@@ -96,22 +105,22 @@ elseif(ops.template=='P') % %initilization using peak to peak
                 if(isempty(id))
                     cvg =1;
                 end
-               WV((id),:) = [];
-               idx(id) = [];
-               list_left = unique(idx);            
-               for jk = 1:length(list_left)
-                   idL = find(idx==list_left(jk));
-                   idx(idL) = jk;
-               end
-           end
-        end
-            NK = length(unique(idx));
-            dWU =[];
-            for i=1:NK
-                dWU(i,:) = mean(WV(idx==i,:));
+                WV((id),:) = [];
+                idx(id) = [];
+                list_left = unique(idx);
+                for jk = 1:length(list_left)
+                    idL = find(idx==list_left(jk));
+                    idx(idL) = jk;
+                end
             end
-            dWU = reshape(dWU,[NK ops.nt0 Nchan]);
-            dWU = permute(dWU,[2 3 1]);
+        end
+        NK = length(unique(idx));
+        dWU =[];
+        for i=1:NK
+            dWU(i,:) = mean(WV(idx==i,:));
+        end
+        dWU = reshape(dWU,[NK ops.nt0 Nchan]);
+        dWU = permute(dWU,[2 3 1]);
         
     end
 else%Get template using Kilosort initialization
@@ -128,20 +137,20 @@ else%Get template using Kilosort initialization
         uS = get_PCproj(dataRAW, row, col, wPCA, ops.maskMaxChannels,ops.nt0min);
         uS = permute(uS, [2 1 3]);
         uS = reshape(uS,numel(row), Nchan * size(wPCA,2));
-       
+        
         if i0+numel(row)>size(uproj,1)
-            uproj(1e6 + size(uproj,1), 1) = 0;            
+            uproj(1e6 + size(uproj,1), 1) = 0;
         end
-        %Save the PC projection on the CPU 
+        %Save the PC projection on the CPU
         uproj(i0 + (1:numel(row)), :) = gather_try(uS);
         i0 = i0 + numel(row);
-    end   
-    uproj(i0+1:end, :) = []; 
+    end
+    uproj(i0+1:end, :) = [];
     %does a scaled kmeans to determine the  Nfilt clusters template
     WUinit = optimizePeaks(ops,uproj,Nchan);
     dWU    = WUinit(:,:,1:Nfilt);
 end
 if(~isempty(dWU))
-[dWU,top] = SVD_topchan(dWU,ops.Chan_criteria);
- dWU = alignWU(dWU,top, ops.nt0min); %make sure that the deep is set at nt0min vital for substracting the template from signal
+    [dWU,top] = SVD_topchan(dWU,ops.Chan_criteria);
+    dWU = alignWU(dWU,top, ops.nt0min); %make sure that the deep is set at nt0min vital for substracting the template from signal
 end

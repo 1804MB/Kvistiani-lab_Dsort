@@ -28,6 +28,11 @@ for i=1:NG_clus
     if(~isempty(id))
     cl1 = rez.st(id,2);  
     Chan1=Chan{i};
+    
+%     if isempty(Chan1) % use it only for problematic sessions
+%         continue
+%     end
+    
     for j=i:NG_clus
          Chan2=Chan{j};
         id2 =find(rez.st(:,3)==j);
@@ -85,7 +90,11 @@ for i=1:NG_clus
                 else
                     bs = rez.dWU(:,Chan1,j);
                     bs = reshape(bs,[],length(Chan1)*nt0);
+                    try
                     score = xcorr(as,bs,0,'coeff');
+                    catch; score = 0; 
+                        disp('failed to run merging')
+                    end
                     rez.score(i,j) = score;
                     if(score>Threshold)
                         rez.st(id2,end) = i;
