@@ -14,16 +14,22 @@ rng('default');
 tic; % start timer
 gpuDevice(1); % initialize GPU (will  erase any existing GPU arrays)
 %run the config file filled by the user
-Config_file;
+session = dir;
+session = session(3:end);
+
+for i = 1:length(session) % [8 11 18 21 24 26 27]*
+sessionpath = [cd,'\',session(i).name];
+ops = Config_file(sessionpath);
 % 
+
 %If openephys format, need to convert into binary saved in example.dat
-if strcmp(ops.datatype , 'openEphys')
+if strcmp(ops.datatype , 'opeEphys') % dat opeEphys
     ops = convertOpenEphysToRawBInary(ops);  % convert data, only for OpenEphys
     fprintf('Time %3.2f. minutes after converting from openephys to binary... \n', toc/60);
     %Get the conversion factor for bit in microvolt
-    file =  strcat(ops.root,'\100_CH1.continuous');
-    [~, ~, info] = load_open_ephys_data_faster(file);
-    ops.bitmVolt = info.header.bitVolts;
+    file =  strcat(ops.root,'\100_CH17.continuous');
+%     [~, ~, info] = load_open_ephys_data_faster(file);
+%     ops.bitmVolt = info.header.bitVolts;
 end
 %************************************************************************************%
 %*******************************Preprocess data *************************************%
@@ -41,30 +47,35 @@ kt = 0;  %iterate number of cluster
  
 %get spikes for each group
 
-for ig = 1:ops.Nb_group
+
+for ig = 1:ops.Nb_group 
      fprintf('Calculation for group: %d... \n',ig); %, toc
-     channel = 1+k:1:ops.chan_per_group+k;
+      channel = 1+k:1:ops.chan_per_group+k;
+%      channel = 13:16;
      DATAg = DATA(:,channel,:);
      %get initial templates
      [T] = Template_building(DATAg,ops);
-     
+%      if(ops.snr == 'O')
+%         [T] = estimate_snr(rez,T);
+%      end
      if(isempty(nonzeros(T)))
         Ncl = 0;
         fprintf('No Templates found for group %d, you might want to lower ops.T_crit or ops.spkTh\n',ig); %, toc
      else
         %fit templates and extract timestamps, iteratively
-        [st3]= NCC_overlap(DATAg, T,ops);  
+        [st,T] = NCC_overlap(DATAg, T,ops);  
+%         [st,To] = check_template(DATAg,st,T,ops); 
         [~,~,Ncl] = size(T);
         dWU(:,channel,1+kt:Ncl+kt) = T;
-        if(~isempty(st3))
+        if(~isempty(st))
             if(irun>0)
                 incr = kt;
             else
                 incr = 0;
             end
-            st3(:,3) = st3(:,3) + incr;
-            [L,~] = size(st3);
-            rez.st3(irun+(1:L),:) = st3;
+            st(:,3) = st(:,3) + incr;
+            [L,~] = size(st);
+            rez.st(irun+(1:L),:) = st;
             irun = irun + L;            
         end
      end
@@ -72,25 +83,6 @@ for ig = 1:ops.Nb_group
      kt = kt + Ncl;
  end 
 %************************************************************************************%
-%Delete template that did not detect enough spikes
-ops.Nfilt = kt;
-%check number of templates actually used
-list =[];
-cluster_left = 1:ops.Nfilt;
-for i=1:ops.Nfilt
-    spike_id = find(rez.st3(:,3)==i);
-    if(isempty(spike_id))
-       list = [list;i];
-    end    
-end
-%delete unused templates
-dWU(:,:,list) =[];
-cluster_left(list)= [];
-ops.Nfilt = size(dWU,3);
-for i=1:ops.Nfilt
-    spike_id = find(rez.st3(:,3)==cluster_left(i));
-    rez.st3(spike_id,3) = i;   
-end
 %************************************************************************************%
 % Save template
 [dWU,W, U, Weight] = SVD_template(dWU,ops.Nrank,ops.Chan_criteria );
@@ -110,12 +102,9 @@ imagesc(U(:,:,1))
 title('U(:,:,1)')
 
 %order spikes by timestamps
-[~, isort]      = sort(rez.st3(:,1), 'ascend');
-rez.st3         = rez.st3(isort,:);
+[~, isort]      = sort(rez.st(:,1), 'ascend');
+rez.st         = rez.st(isort,:);
 %*****************************Post-process the data******************************%
-%copy the detected spikes information in different matrix in order to
-%post-process them and conserve the initial  values.
-rez.st = rez.st3;
 %************************************************************************************%
 %Get the best channels for each clusters
 [rez] = Chan_cluster(rez,ops.Chan_criteria);
@@ -125,7 +114,7 @@ rez.st = rez.st3;
 [rez] = merging(rez,ops.Threshold);
 fprintf('Time %3.2f minutes after merging... \n', toc/60);
 %************************************************************************************%
-save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
+save(fullfile(ops.root,  'rezI.mat'), 'rez', '-v7.3')
 %************************************************************************************%
 % %************************************************************************************%
 [rez] = Waveform(rez,DATA);
@@ -140,9 +129,17 @@ fprintf('Time %3.2f minutes after mean waveform calculation... \n', toc/60);
 %************************************************************************************%
 [rez] = autocorrelogram(rez);
 %************************************************************************************%
+[rez]=probability(rez);
 %Save the data
 %************************************************************************************%
-save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3')
+save(fullfile(ops.root,  'rezI.mat'), 'rez', '-v7.3')
+fprintf('Time %3.2f minutes after projection_autoccorelation calculation... \n', toc/60);
+% Spliting, cleaning and final merging clusters
+%************************************************************************************%
+[rez] = cleaning_clusters(rez,DATA);
+save(fullfile(ops.root,  'rezF.mat'), 'rez', '-v7.3')
 fprintf('Time %3.2f minutes for Full calculation... \n', toc/60);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%THE END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% close all;
+
+close all;
+end

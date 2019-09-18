@@ -1,4 +1,4 @@
-function [rez] = Chan_cluster(rez,criteria)
+function [rez] = Chan_template(rez,criteria)
 
 N_clust = length(unique(rez.st(:,3)));
 U = rez.U(:,:,1);
@@ -12,5 +12,5 @@ for i =1:N_clust
      Chan_score{i} = U(id(chan_order),i);
 end
 rez.Chan =  Chan;
-rez.Chan_score= Chan_score;
+rez.Chan_score = Chan_score;
    
