@@ -11,7 +11,11 @@ Chan = rez.Chan;
 
 
 %********************************************************************%
+<<<<<<< HEAD
+%*******************Calculate cross-correlograms*********************%
+=======
 %*******************Calculate cross-correlograms**********************%
+>>>>>>> b40eda2ba9d8488d51e4fdab208592d3fc36a9f0
 %********************************************************************%
 N = 200;          %Number of iteration (number of shuffling)
 pour = 1;           %Value for the confidence interval calculated via percentile function in %
@@ -75,6 +79,25 @@ for i=1:NG_clus
        
         Progress = (i/NG_clus);
         waitbar(Progress)
+<<<<<<< HEAD
+%       as = rez.M_template(:,Chan1,i);
+%       as = reshape(as,[],length(Chan1)*nt0);
+        as = rez.M_template(:,:,i);
+        as = reshape(as,[],rez.ops.NchanTOT*nt0);
+
+        for j=i:NG_clus
+            id2 =find(rez.st(:,end)==j);
+ 
+                if(isempty(id2)||overlap(i,j)==0) 
+
+%                if(isempty(id2))
+
+                else
+%                   bs = rez.M_template(:,Chan1,j); % use only selected channels by SVD                    
+%                   bs = reshape(bs,[],length(Chan1)*nt0);
+                    bs = rez.M_template(:,:,j); % use all channels for merging
+                    bs = reshape(bs,[],rez.ops.NchanTOT*nt0);
+=======
         as = rez.M_template(:,Chan1,i);
         as = reshape(as,[],length(Chan1)*nt0);
         for j=i:NG_clus
@@ -84,6 +107,7 @@ for i=1:NG_clus
                 else
                     bs = rez.M_template(:,Chan1,j);
                     bs = reshape(bs,[],length(Chan1)*nt0);
+>>>>>>> b40eda2ba9d8488d51e4fdab208592d3fc36a9f0
                     score = xcorr(as,bs,0,'coeff');
                     rez.score(i,j) = score;
                     if(score>Threshold)
@@ -96,7 +120,11 @@ for i=1:NG_clus
 end
 close(h)
 
+<<<<<<< HEAD
+M_clust = length(unique(rez.st(:,end))) %number of merged clusters
+=======
 M_clust =length(unique(rez.st(:,end))) %number of merged clusters
+>>>>>>> b40eda2ba9d8488d51e4fdab208592d3fc36a9f0
 old_Clusters = unique(rez.st(:,end));
 for i=1:M_clust
     spike_id = find(rez.st(:,end) ==old_Clusters(i));

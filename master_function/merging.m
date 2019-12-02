@@ -41,14 +41,14 @@ for i=1:NG_clus
             overlap(i,j) = 1;
             overlap(j,i) = 1;
         else
-            if(length(Chan1)==length(Chan2) )     
+            if(length(Chan1)==length(Chan2) ) &&  ~isempty(Chan1) && ~isempty(Chan2)  
                 if(Chan1(1)==Chan2(1))
                     cl2 = rez.st(id2,2);  
                     t0 = [cl1;cl2];
                     count_s = length(t0); % Total number of spikes           
                     for k = 1:N
                         shuffle = t0 + randi([-s_int s_int],length(t0),1);
-                        tcor(k) =length(unique(shuffle));
+                        tcor(k) = length(unique(shuffle));
                     end
                     Init_value = count_s - length(unique(t0)); %Number of spikes violating the refractory period from the real data
                     CI_low = count_s - prctile(tcor,pour) ;   %Number of spikes violating the refractory period using the the confidence interval  

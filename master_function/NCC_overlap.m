@@ -80,6 +80,9 @@ while(stop==0 || criteria_NCC>=1)
              batch_id(i,:)    = it;
              %Apply the criteria
              best(best<criteria_NCC)=0;
+             % apply spike threshold crossing criteria . dk
+%            [val, ~] = min(dat*ops.scaleproc,[],2); 
+%            best(val>-150) = 0;    %250         
              %Search for the spikes timestamps if score goes above threshold
              %Find the highest NCC value every nt0 points (should correspond to 1 ms)
              [time] =  get_timestamps(best,nt0);

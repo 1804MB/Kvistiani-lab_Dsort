@@ -29,7 +29,11 @@ if(mode==0)
              [rez] = recompute(rez,DATA);
              save(fullfile(rez.ops.root,  'rezFMerged.mat'), 'rez', '-v7.3')
 else
+<<<<<<< HEAD
+    for i=  1:M_clust
+=======
     for i= 1:M_clust
+>>>>>>> b40eda2ba9d8488d51e4fdab208592d3fc36a9f0
         if(stop==0)
             plot_pc(rez,i)
             wv_ccg(rez,i)
@@ -86,8 +90,14 @@ else
         
     end
     [rez] = recompute(rez,DATA);
+<<<<<<< HEAD
+   save(fullfile(rez.ops.root, 'rezFinal.mat'), 'rez', '-v7.3')
+end
+
+=======
     save(fullfile(rez.ops.root,  'rezF3.mat'), 'rez', '-v7.3')
 end
 
 
+>>>>>>> b40eda2ba9d8488d51e4fdab208592d3fc36a9f0
 %

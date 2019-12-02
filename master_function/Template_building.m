@@ -6,7 +6,8 @@ Nfilt = ops.Nfilt;
 if(ops.template =='Y')
     %     dWU0   = load(ops.template_file);
     load(ops.template_file);
-    dWU    = S_template;
+%   dWU    = S_template;
+    dWU    = rez.M_template;
 elseif(ops.template=='G') % or it generates templates based on config file
     [WUinit] = init_template(ops,Nchan);
     dWU    = WUinit(:,:,1:Nfilt);
