@@ -8,6 +8,13 @@ function MakeTrialEvents_FreeChoice(varargin)
 [DecimalEvents, Timestamps] = OpenEphysEvents2Bpod('all_channels.events');
 DecimalEvents(find(diff(Timestamps)<0.00005)+1) = [];
 Timestamps(find(diff(Timestamps)<0.00005)+1) = [];
+
+StimTTLON = 64;
+StimTTLOFF = 0;
+InhibTTLON = 130;
+InhibTTLOFF = 134;
+
+
 TrialInx = find(DecimalEvents == 0);
 
 load('Jb.mat')

@@ -3,7 +3,7 @@ function wv_ccg(rez,i)
      SpikePETH_M =  rez.PETH(:,i);
      Nchan = length(cell2mat(rez.Merge_cluster(i,5)));
      h=figure;
-      movegui(h,'south');
+     movegui(h,'south');
      subplot(1+ceil(Nchan/4),4,[1,2,3,4])
      bar(-50:1:48,SpikePETH_M(1:99,1))
      title(['PETH of cluster:',num2str(i),' with:', num2str(length(Spike_id)), ' spikes and refrac:', num2str(SpikePETH_M(51,1))])

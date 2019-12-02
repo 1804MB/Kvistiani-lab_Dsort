@@ -42,20 +42,23 @@ kt = 0;  %iterate number of cluster
 %get spikes for each group
 
 
-for ig = 1:ops.Nb_group
+for ig = 1 
      fprintf('Calculation for group: %d... \n',ig); %, toc
-     channel = 1+k:1:ops.chan_per_group+k;
+%      channel = 1+k:1:ops.chan_per_group+k;
+     channel = 13:16;
      DATAg = DATA(:,channel,:);
      %get initial templates
      [T] = Template_building(DATAg,ops);
-     
+%      if(ops.snr == 'O')
+%         [T] = estimate_snr(rez,T);
+%      end
      if(isempty(nonzeros(T)))
         Ncl = 0;
         fprintf('No Templates found for group %d, you might want to lower ops.T_crit or ops.spkTh\n',ig); %, toc
      else
         %fit templates and extract timestamps, iteratively
         [st,T] = NCC_overlap(DATAg, T,ops);  
-        [st,T] = check_template(DATAg,st,T,ops);
+%         [st,To] = check_template(DATAg,st,T,ops); 
         [~,~,Ncl] = size(T);
         dWU(:,channel,1+kt:Ncl+kt) = T;
         if(~isempty(st))

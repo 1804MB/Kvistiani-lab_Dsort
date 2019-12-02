@@ -159,9 +159,13 @@ while 1
 	%Backward filtering using butterworth coefficient
     datr = filter(b1, a1, datr);
     datr = flipud(datr);
+    % subtract average mean from each channel
+%     datr = datr' - mean(datr');
+%     datr = datr';
     
 %Detect spikes in order to uncorrelate the signal to build a better whitening matrix
 %Calculation of the covariance matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             smin      = my_min(datr, ops.loc_range, [1 2]);
             sd = std(datr, [], 1);
 			%Simple peak detection threshold based on the standart deviation
@@ -171,14 +175,18 @@ while 1
             smin      = datr .* blankout;
             CC        = CC + (smin' * smin)/NT; %covariance matrix, addition because we operate per batch
             nPairs    = nPairs + (blankout'*blankout)/NT;
-    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
         DATA(:,:,ibatch) = gather_try(int16( datr(ioffset + (1:NT),:))); %Save the filtered matrix datr (GPU) in DATA 
 
 end
-%CC = CC / ceil((Nbatch-1)/ops.nSkipCov); %Deletion of CC / ceil((Nbatch-1)/ops.nSkipCov) because we don't skip any batch 
+
+%%%%%%%%%%%%%%%%
+% CC = CC / ceil((Nbatch-1)/ops.nSkipCov); %Deletion of CC / ceil((Nbatch-1)/ops.nSkipCov) because we don't skip any batch 
+
 CC = CC / ceil(Nbatch-1);% Divide by number of batch
 nPairs = nPairs/ibatch;
 CC = CC ./nPairs;%Why divide by nPairs? [MB?]
+%%%%%%%%%%%%%%%%
 
 fclose(fid);
 %close file
@@ -188,6 +196,7 @@ fclose(fid);
 %Using SVD we get the whitening Matrix Wrot
 
 %If only whiten some channels
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ops.whiteningRange<Inf
     ops.whiteningRange = min(ops.whiteningRange, Nchan);
     Wrot = whiteningLocal(gather_try(CC), yc, xc, ops.whiteningRange);
@@ -198,23 +207,35 @@ else %If whiten all channels
     eps 	= 1e-6; %added for problem of singular matrix
     Wrot 	= E * diag(1./(D + eps).^.5) * E';
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-Wrot = Wrot *ops.scaleproc;
+      Wrot = Wrot *ops.scaleproc;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   sigdata = zeros(Nchan,Nbatch);
+   mudata = zeros(Nchan,Nbatch);
 %Apply the whitening matrix to the filtered data and get the PC projection of the spikes
 %used to initialize the template used in the next function FitTemplate.m
 for ibatch = 1:Nbatch
 	datr = single(gpuArray(DATA(:,:,ibatch)));
 	%Whitening of the data
-    datr    = datr * Wrot;
+%%%%%%%%%%%%%%%%%    
+     datr    = datr * Wrot;
+%%%%%%%%%%%%%%%%%
     %Save the filtered on whitened data 
-    DATA(:,:,ibatch) = gather_try(datr);   
+    DATA(:,:,ibatch) = gather_try(datr);  
+   sigdata(:,ibatch) = std(gather(datr));
+   mudata(:,ibatch) = mean(gather(datr));
 end
-
-Wrot        = gather_try(Wrot);
+%%%%%%%%%%%
+  Wrot        = gather_try(Wrot);
+%%%%%%%%%%%
 %save the whitening matrix in the rez file
-rez.Wrot    = Wrot;
+%%%%%%%%%%%
+   rez.Wrot    = Wrot;
+%%%%%%%%%%%
 
 rez.temp.Nbatch = Nbatch;
 rez.temp.Nbatch_buff = Nbatch_buff;
+rez.sigdata =  sigdata ;
+rez.mudata  = mudata;
 

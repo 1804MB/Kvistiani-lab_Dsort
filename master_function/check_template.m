@@ -25,7 +25,7 @@ if(length(st(:,1))>ops.Ns_min)
         ar  = reshape(ar,[size(inds) Nchan]);
         ar = permute(ar,[2,1,3]);
         ar = (reshape(ar,length(time),Nchan*ops.nt0));
-        WV(irun + (1:numel(time)),:) = ar;
+        WV(irun + (1:numel(time)),:) = ar./vecnorm(ar);
         irun  = irun +numel(time);     
     end
 
@@ -42,7 +42,8 @@ if(length(st(:,1))>ops.Ns_min)
                 figure;
                 bar(edge(1:end-1),N);
                 title(['Final distribution, cluster=',num2str(i), 'pv:', num2str(pv)]) 
-                if(pv<ops.p_val_dip_test )
+                 if(pv<ops.p_val_dip_test )
+
                    dWU = reshape(Mean_wave,[ops.nt0 Nchan]);
                     Nrank = 3;
                     [~,W, ~, ~,~] = SVD_template(dWU, Nrank,ops.Chan_criteria) ;
@@ -58,12 +59,15 @@ if(length(st(:,1))>ops.Ns_min)
                             sig_for(k,ij) =  kurtosis(PC(k,ij,:));
                         end
                     end
+                    plot_pc_init(PC,Nchan,i)
                     [~,ichan]=min(min(sig_for,[],2));
                     options = statset('MaxIter',500);
                      warning('off','stats:gmdistribution:FailedToConvergeReps');
                     GMModel = fitgmdist(squeeze(PC(ichan,:,:))',2,'Options',options,'Replicates',100);
                     clusterX = cluster(GMModel,squeeze(PC(ichan,:,:))');
+                    id1 = find(clusterX==1);
                     id2 = find(clusterX==2);
+                    plot_pc_init_two(PC,Nchan,i,id1,id2)
                     idx(id(id2)) = length(unique(idx))+1;
                 end
              end
@@ -73,6 +77,13 @@ end
             dWU =[];
             for i=1:NK
                 dWU(i,:) = mean(WV(idx==i,:));
+                figure;
+                plot(dWU(i,:))
+                PCP = WV(idx==i,:)*dWU(i,:)';
+                [N,edge]=histcounts(PCP);
+                figure;
+                bar(edge(1:end-1),N);
+                title(['Final distribution, cluster=',num2str(i)])
             end
             dWU = reshape(dWU,[NK ops.nt0 Nchan]);
             dWU = permute(dWU,[2 3 1]);

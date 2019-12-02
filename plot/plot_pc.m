@@ -6,7 +6,7 @@ function plot_pc(rez,i)
      ki =0;
      for k=1:Nchan
         subplot(Nchan,3,1+ki)  
-        plot(squeeze(PC(k,1,:)),squeeze(PC(k,2,:)),'*')
+        plot(squeeze(PC(k,1,:)),squeeze(PC(k,2,:)),'.','MarkerSize',2)
         title(['Cluster:', num2str(i)]);
         ylabel('PC2')
         xlabel('PC1')
@@ -14,7 +14,7 @@ function plot_pc(rez,i)
         ylim([min(squeeze(PC(k,2,:))) max(squeeze(PC(k,2,:)))])     
         hold on
         subplot(Nchan,3,2+ki)   
-        plot(squeeze(PC(k,1,:)),squeeze(PC(k,3,:)),'*')
+        plot(squeeze(PC(k,1,:)),squeeze(PC(k,3,:)),'.','MarkerSize',2)
         ylabel('PC3')
         xlabel('PC1')
         xlim([min(squeeze(PC(k,1,:))) max(squeeze(PC(k,1,:)))])     
@@ -22,7 +22,7 @@ function plot_pc(rez,i)
         title(['Channel:',num2str(channel(k))])
         hold on
         subplot(Nchan,3,3+ki)   
-        plot(squeeze(PC(k,2,:)),squeeze(PC(k,3,:)),'*')
+        plot(squeeze(PC(k,2,:)),squeeze(PC(k,3,:)),'.','MarkerSize',2)
         ylabel('PC3')
         xlabel('PC2')
         xlim([min(squeeze(PC(k,2,:))) max(squeeze(PC(k,2,:)))])     

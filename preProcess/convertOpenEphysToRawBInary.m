@@ -5,7 +5,7 @@ fidout      = fopen(fname, 'w');
 %
 clear fs
 for j = 1:ops.Nchan
-   fs{j} = dir(fullfile(ops.root, sprintf('100_CH%d.continuous', j) ));
+   fs{j} = dir(fullfile(ops.root, sprintf('100_CH%d.continuous', j) ));% should be j 
 end
 nblocks = cellfun(@(x) numel(x), fs);
 if numel(unique(nblocks))>1
@@ -35,7 +35,7 @@ for k = 1:nBlocks
             rawData         = fread(fid{j}, 1000 * (nSamples + 6), '1030*int16', 10, 'b');
 
             nbatches        = ceil(numel(rawData)/(nSamples+6));
-            for s = 1:nbatches
+            for s = 1:nbatches - 1 % correct it to 1:nbatches
                 rawSamps = rawData((s-1) * (nSamples + 6) +6+ [1:nSamples]);
                 collectSamps((s-1)*nSamples + [1:nSamples]) = rawSamps;
             end
