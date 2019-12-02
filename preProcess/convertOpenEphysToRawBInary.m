@@ -35,7 +35,11 @@ for k = 1:nBlocks
             rawData         = fread(fid{j}, 1000 * (nSamples + 6), '1030*int16', 10, 'b');
 
             nbatches        = ceil(numel(rawData)/(nSamples+6));
+<<<<<<< HEAD
             for s = 1:nbatches - 1 % correct it to 1:nbatches
+=======
+            for s = 1:nbatches % correct it to 1:nbatches
+>>>>>>> b40eda2ba9d8488d51e4fdab208592d3fc36a9f0
                 rawSamps = rawData((s-1) * (nSamples + 6) +6+ [1:nSamples]);
                 collectSamps((s-1)*nSamples + [1:nSamples]) = rawSamps;
             end
